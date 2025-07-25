@@ -18,7 +18,7 @@ control_code.py  v1.4
 SQLite path defaults to $HOME/agllmdatabase.db (overridable with $AGLLM_DB).
 """
 
-import os, sys, sqlite3, subprocess, shutil, re
+import os, sys, sqlite3, subprocess, shutil, re, json, requests
 from pathlib import Path
 from datetime import datetime
 
@@ -33,6 +33,7 @@ FEEDBACK_MD     = LOGS_DIR / "feedback.md"
 ASSIGNMENT_ID   = 101
 TEST_ID         = 1001          # reserved for future use
 OLLAMA_MODEL    = "deepseek-coder:33b"
+OLLAMA_HOST     = os.getenv("OLLAMA_HOST", "http://ollama:11434")
 
 # ─────────────────────────── helpers ────────────────────────────
 def err(msg: str):
@@ -49,16 +50,19 @@ def read_file(path: Path) -> str:
     return ""
 
 def run_ollama(prompt: str) -> str:
-    res = subprocess.run(
-        ["ollama", "run", OLLAMA_MODEL],
-        input=prompt,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-    if res.returncode != 0:
-        err(f"Ollama error ⇒ {res.stderr.strip()}")
-    return res.stdout
+    """Call the Ollama REST API instead of the CLI."""
+    url = f"{OLLAMA_HOST.rstrip('/')}/api/generate"
+    payload = {
+        "model":  OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False          # single JSON response
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=600)
+        r.raise_for_status()
+        return r.json()["response"]
+    except Exception as e:
+        err(f"Ollama API error ⇒ {e}")
 
 def is_perfect_score(text: str) -> bool:
     """True if autograder gave full marks."""

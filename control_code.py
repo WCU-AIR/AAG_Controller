@@ -32,7 +32,7 @@ README_FILE     = LOGS_DIR / "README.md"
 FEEDBACK_MD     = LOGS_DIR / "feedback.md"
 ASSIGNMENT_ID   = 101
 TEST_ID         = 1001          # reserved for future use
-OLLAMA_MODEL    = "deepseek-coder:33b"
+OLLAMA_MODEL    = "llama3.2:3b"
 OLLAMA_HOST     = os.getenv("OLLAMA_HOST", "http://ollama:11434")
 
 # ─────────────────────────── helpers ────────────────────────────

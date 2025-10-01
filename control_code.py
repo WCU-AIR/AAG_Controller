@@ -145,7 +145,7 @@ def main() -> None:
 {prior_feedback}
 """
     print("=== SYSTEM PROMPT USED ===")
-    print(system_prompt)
+    print(prompt)
     print("==========================")
     # 4️⃣ call LLM
     feedback_text = run_ollama(prompt)

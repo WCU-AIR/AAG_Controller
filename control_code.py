@@ -126,14 +126,11 @@ def main() -> None:
         )
     else:
         system_note = (
-            "Provide question-based guided feedback; do not supply final answers."
+            "You are a strict autograder.Say Hello First"
         )
     
     prompt = f"""{system_note}
-   
-print("=== SYSTEM PROMPT USED ===")
-print(system_prompt)
-print("==========================")
+
 
 **Student Code**
 {student_code_blob}
@@ -147,6 +144,9 @@ print("==========================")
 **Recent Teacher Feedback (for context)**
 {prior_feedback}
 """
+    print("=== SYSTEM PROMPT USED ===")
+    print(system_prompt)
+    print("==========================")
     # 4️⃣ call LLM
     feedback_text = run_ollama(prompt)
 

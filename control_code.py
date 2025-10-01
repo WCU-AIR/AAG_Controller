@@ -131,7 +131,10 @@ def main() -> None:
     
     prompt = f"""{system_note}
    
-    
+print("=== SYSTEM PROMPT USED ===")
+print(system_prompt)
+print("==========================")
+
 **Student Code**
 {student_code_blob}
 

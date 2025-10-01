@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-control_code.py  v1.4
+control_code.py  v1.5
 ────────────────────────────────────────────────────────────
 • Collects student repo name from CLI
 • Reads *all* source files under ~/logs/studentcode  (language-agnostic)
 • Detects perfect autograder scores
 • Retrieves last 3 teacher-reviewed comments for the repo
-• Sends a retrieval-augmented prompt to Ollama (“ux1” model)
+• Loads system prompts from /prompts (external to code) via PromptStore
+• Sends a retrieval-augmented prompt to Ollama
 • Writes markdown feedback to ~/logs/feedback.md
 • Persists rows into:
 
@@ -21,19 +22,26 @@ SQLite path defaults to $HOME/agllmdatabase.db (overridable with $AGLLM_DB).
 import os, sys, sqlite3, subprocess, shutil, re, json, requests
 from pathlib import Path
 from datetime import datetime
+from prompt_store import PromptStore  # ability to change prompts
 
 # ─────────────────────────── config ─────────────────────────────
-DB_PATH         = os.getenv("AGLLM_DB",
-                             os.path.join(os.getenv("HOME"), "agllmdatabase.db"))
-LOGS_DIR        = Path(os.getenv("HOME") or ".").joinpath("logs")
-STUDENT_CODE_DIR= LOGS_DIR / "studentcode"
-AUTO_FILE       = LOGS_DIR / "autograder_output.txt"
-README_FILE     = LOGS_DIR / "README.md"
-FEEDBACK_MD     = LOGS_DIR / "feedback.md"
-ASSIGNMENT_ID   = 101
-TEST_ID         = 1001          # reserved for future use
-OLLAMA_MODEL    = "llama3.2:3b"
-OLLAMA_HOST     = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+DB_PATH          = os.getenv("AGLLM_DB",
+                              os.path.join(os.getenv("HOME"), "agllmdatabase.db"))
+LOGS_DIR         = Path(os.getenv("HOME") or ".").joinpath("logs")
+STUDENT_CODE_DIR = LOGS_DIR / "studentcode"
+AUTO_FILE        = LOGS_DIR / "autograder_output.txt"
+README_FILE      = LOGS_DIR / "README.md"
+FEEDBACK_MD      = LOGS_DIR / "feedback.md"
+ASSIGNMENT_ID    = 101
+TEST_ID          = 1001          # reserved for future use
+
+# Make model env-driven (fallback preserved)
+OLLAMA_MODEL     = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+
+# System prompt filenames (can be overridden by env)
+PROMPT_PERFECT   = os.getenv("PROMPT_PERFECT", "system_perfect.md")
+PROMPT_DEFAULT   = os.getenv("PROMPT_DEFAULT", "system_default.md")
 
 # ─────────────────────────── helpers ────────────────────────────
 def err(msg: str):
@@ -116,21 +124,29 @@ def main() -> None:
     ).fetchall()
     prior_feedback = "\n\n".join(row[0] for row in past_fb if row[0]) or "None so far."
 
-    # 3️⃣  build prompt
-    if perfect:
-        system_note = (
-            "The autograder awarded a perfect score. Congratulate the student "
-            "briefly. THEN examine Professor Instructions: ask guiding questions "
-            "only if the code violates a requirement (e.g. banned libraries, "
-            "time complexity). Otherwise add no further guidance."
-        )
-    else:
-        system_note = (
-            "You are a strict autograder.Say Hello First"
-        )
-    
-    prompt = f"""{system_note}
+    # 3️⃣  build prompt (system header loaded from /prompts via PromptStore)
+    store = PromptStore()  # uses PROMPTS_DIR (e.g., /app/prompts in Docker, $HOME/prompts in Actions)
 
+    try:
+        if perfect:
+            system_prompt = store.read(PROMPT_PERFECT)
+        else:
+            system_prompt = store.read(PROMPT_DEFAULT)
+    except FileNotFoundError as e:
+        # Hard fallback to built-in strings so runs never fail
+        if perfect:
+            system_prompt = (
+                "The autograder awarded a perfect score. Congratulate the student "
+                "briefly. THEN examine Professor Instructions: ask guiding questions "
+                "only if the code violates a requirement (e.g. banned libraries, "
+                "time complexity). Otherwise add no further guidance."
+            )
+        else:
+            system_prompt = "You are a strict autograder. Say Hello First"
+        print(f"⚠️  {e} — falling back to built-in system prompt.", file=sys.stderr)
+
+    # Build the FULL prompt (what goes to the model)
+    prompt = f"""{system_prompt}
 
 **Student Code**
 {student_code_blob}
@@ -144,9 +160,14 @@ def main() -> None:
 **Recent Teacher Feedback (for context)**
 {prior_feedback}
 """
-    print("=== SYSTEM PROMPT USED ===")
+
+    # Visibility for runs/logs
+    #print("=== SYSTEM PROMPT HEADER (from prompts) ===")
+   #print("=== END SYSTEM PROMPT HEADER ===\n")
+    print("=== FULL PROMPT SENT TO OLLAMA ===")
     print(prompt)
-    print("==========================")
+    print("=== END FULL PROMPT ===")
+
     # 4️⃣ call LLM
     feedback_text = run_ollama(prompt)
 

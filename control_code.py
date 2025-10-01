@@ -142,7 +142,7 @@ def main() -> None:
                 "time complexity). Otherwise add no further guidance."
             )
         else:
-            system_prompt = "You are a strict autograder. Say Hello First"
+            system_prompt = "You are a strict autograder. Provide question-based guided feedback; do not supply final answers."
         print(f"⚠️  {e} — falling back to built-in system prompt.", file=sys.stderr)
 
     # Build the FULL prompt (what goes to the model)

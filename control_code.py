@@ -142,7 +142,7 @@ def main() -> None:
                 "time complexity). Otherwise add no further guidance."
             )
         else:
-            system_prompt = "You are a strict autograder. Provide question-based guided feedback; do not supply final answers."
+            system_prompt = "You are a strict reviewer that reads inputs only in this order: autograder results → assignment spec → prior feedback → the student’s C code, prioritizing autograder failures and never contradicting the spec or prior feedback; if evidence is missing, state “uncertain” rather than guessing.Report 1–4test-relevant issues (e.g., logic, API misuse, memory/UB) with short reflection-style notes or conceptual nudges only.Do not give answers, fixes, code snippets, step-by-step repairs, or inferred variable names/intent, and do not ask questions."
         print(f"⚠️  {e} — falling back to built-in system prompt.", file=sys.stderr)
 
     # Build the FULL prompt (what goes to the model)

@@ -25,8 +25,7 @@ from datetime import datetime
 from prompt_store import PromptStore  # ability to change prompts
 
 # ─────────────────────────── config ─────────────────────────────
-DB_PATH          = os.getenv("AGLLM_DB",
-                              os.path.join(os.getenv("HOME"), "agllmdatabase.db"))
+DB_PATH          = "/app/db/agentic.db" #os.getenv("AGLLM_DB",os.path.join(os.getenv("HOME"), "agllmdatabase.db"))
 LOGS_DIR         = Path(os.getenv("HOME") or ".").joinpath("logs")
 STUDENT_CODE_DIR = LOGS_DIR / "studentcode"
 AUTO_FILE        = LOGS_DIR / "autograder_output.txt"

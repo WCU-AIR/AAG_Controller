@@ -163,9 +163,9 @@ def main() -> None:
     # Visibility for runs/logs
     #print("=== SYSTEM PROMPT HEADER (from prompts) ===")
    #print("=== END SYSTEM PROMPT HEADER ===\n")
-    print("=== FULL PROMPT SENT TO OLLAMA ===")
-    print(prompt)
-    print("=== END FULL PROMPT ===")
+   # print("=== FULL PROMPT SENT TO OLLAMA ===")
+    #print(prompt)
+    #print("=== END FULL PROMPT ===")
 
     # 4️⃣ call LLM
     feedback_text = run_ollama(prompt)

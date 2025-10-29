@@ -35,7 +35,7 @@ ASSIGNMENT_ID    = 101
 TEST_ID          = 1001          # reserved for future use
 
 # Make model env-driven (fallback preserved)
-OLLAMA_MODEL     = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
+OLLAMA_MODEL     = os.getenv("OLLAMA_MODEL", "ux1")
 OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://molly.cs.wcupa.edu:11434")
 
 # System prompt filenames (can be overridden by env)

@@ -209,7 +209,7 @@ def main() -> None:
         )
 
         conn.commit()
-        print("✅ Data inserted into agllmdatabase.db")
+        print("✅ Data inserted into database")
     except sqlite3.Error as e:
         conn.rollback()
         err(f"SQLite error → {e}")

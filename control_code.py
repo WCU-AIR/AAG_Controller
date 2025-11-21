@@ -35,7 +35,7 @@ ASSIGNMENT_ID    = 101
 TEST_ID          = 1001          # reserved for future use
 
 # Make model env-driven (fallback preserved)
-OLLAMA_MODEL     = os.getenv("OLLAMA_MODEL", "gpt-oss")
+OLLAMA_MODEL     = os.getenv("OLLAMA_MODEL", "qwen2:0.5b")
 OLLAMA_HOST      = os.getenv("OLLAMA_HOST", "http://molly.cs.wcupa.edu:11434") # default http://ollama:11434 Also Change your Host IP on the docker compose !!
 
 # System prompt filenames (can be overridden by env)
